@@ -1,5 +1,7 @@
 # code4hep scripts for extracting components from CMSSW
 
+These scripts require the `git-filter-repo` package to be installed.
+
 ## Stitched
 
 The `extract-stitched.sh` script extracts the Stitched packages from

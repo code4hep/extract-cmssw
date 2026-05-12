@@ -103,7 +103,7 @@ echo "git branch ${NEW_MAIN} ${STITCHED_ORIGIN}/${LATEST_MAIN}"
 git branch ${NEW_MAIN} ${STITCHED_ORIGIN}/${LATEST_MAIN}
 
 echo
-echo "Next rebase the ${NEW_MAIN} branch, and push everything back to the Stitched repository"
+echo "Next you need to rebase the ${NEW_MAIN} branch, and push everything back to the Stitched repository"
 echo "cd cmssw"
 echo "git rebase ${EXTRACT_BRANCH} ${NEW_MAIN}"
 echo "git push ${STITCHED_ORIGIN} ${EXTRACT_BRANCH} ${EXTRACT_TAG} ${NEW_MAIN}"
