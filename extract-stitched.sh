@@ -44,6 +44,7 @@ done
 
 # "Configuration"
 EXTRACT_BRANCH="cmssw_master"
+CMSSW_REPO="https://github.com/cms-sw/cmssw"
 STITCHED_REPO="git@github.com:code4hep/stitched-alpha2.git"
 
 # In the original CMSSW
@@ -62,7 +63,7 @@ STITCHED_REPO="git@github.com:code4hep/stitched-alpha2.git"
 echo "$(date) Starting"
 echo
 echo "Cloning CMSSW"
-git clone https://github.com/cms-sw/cmssw.git
+git clone ${CMSSW_REPO}.git
 cd cmssw
 
 CMSSW_HEAD_ID=$(git rev-parse --short master)
@@ -101,6 +102,26 @@ LATEST_MAIN=$(git remote show ${STITCHED_ORIGIN} | grep main_ | grep -v HEAD | a
 NEW_MAIN="main_${DATE}"
 echo "git branch ${NEW_MAIN} ${STITCHED_ORIGIN}/${LATEST_MAIN}"
 git branch ${NEW_MAIN} ${STITCHED_ORIGIN}/${LATEST_MAIN}
+
+NOTES_FILE="ReleaseNotes.md"
+echo
+echo "Following PRs were merged in the CMSSW since the last extraction (from oldest to newest). Include these in the Stitched release notes (the list is saved in ${NOTES_FILE})."
+MERGED_PRS=$(git log --merges --pretty="%s" ${STITCHED_ORIGIN}/${EXTRACT_BRANCH}..${EXTRACT_BRANCH} | sed -n 's/.*Merge pull request #\([0-9]*\).*/\1/p' | tac)
+if command -v gh &> /dev/null; then
+    GH_AVAILABLE=true
+else
+    GH_AVAILABLE=false
+    echo "Note: GitHub CLI ('gh') not found in PATH, PR titles will be omitted from ${NOTES_FILE}"
+fi
+for PR in $MERGED_PRS; do
+    echo "- ${CMSSW_REPO}/pull/${PR}"
+    if $GH_AVAILABLE; then
+        TITLE=$(gh pr view ${CMSSW_REPO}/pull/${PR} --json title --template "{{.title}}")
+        echo "- ${TITLE} (${CMSSW_REPO}/pull/${PR}) " >> ${NOTES_FILE}
+    else
+        echo "- ${CMSSW_REPO}/pull/${PR}" >> ${NOTES_FILE}
+    fi
+done
 
 echo
 echo "Next you need to rebase the ${NEW_MAIN} branch, and push everything back to the Stitched repository"

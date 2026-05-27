@@ -14,4 +14,9 @@ results in
   `<DD>` are the date when the script was run, and the `hash` the the
   commit ID of CMSSW's `master` branch at the time of the extraction
 
+The script prints out, and stores in `ReleaseNotes.md`, the PRs that
+were merged in CMSSW touching the Stitched packages. This list can be
+then used for e.g. Stithced release notes. If GitHub CLI (`gh`) is
+available in `$PATH`, it is used to obtain the titles of those PRs.
+
 The `cmssw_master` and `CMSSW_<YYYY>_<MM>_<DD>_<hash>` should then be pushed to the Stitched repository.
