@@ -98,7 +98,7 @@ git remote add ${STITCHED_ORIGIN} ${STITCHED_REPO}
 echo "git fetch ${STITCHED_ORIGIN}"
 git fetch ${STITCHED_ORIGIN}
 
-LATEST_MAIN=$(git remote show ${STITCHED_ORIGIN} | grep main_ | grep -v HEAD | awk '{print $1}' | sort -u)
+LATEST_MAIN=$(git remote show ${STITCHED_ORIGIN} | grep main_ | grep -v HEAD | awk '{print $1}' | sort -u | tail -n 1)
 NEW_MAIN="main_${DATE}"
 echo "git branch ${NEW_MAIN} ${STITCHED_ORIGIN}/${LATEST_MAIN}"
 git branch ${NEW_MAIN} ${STITCHED_ORIGIN}/${LATEST_MAIN}
