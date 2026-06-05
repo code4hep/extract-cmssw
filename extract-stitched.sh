@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+# dirname can return a relative path, so we convert it to an absolute path to ensure the script works correctly
+# regardless of the current working directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 PATHS="DataFormats/Common
        DataFormats/Provenance
        DataFormats/StdDictionaries
@@ -106,22 +110,8 @@ git branch ${NEW_MAIN} ${STITCHED_ORIGIN}/${LATEST_MAIN}
 NOTES_FILE="ReleaseNotes.md"
 echo
 echo "Following PRs were merged in the CMSSW since the last extraction (from oldest to newest). Include these in the Stitched release notes (the list is saved in ${NOTES_FILE})."
-MERGED_PRS=$(git log --merges --pretty="%s" ${STITCHED_ORIGIN}/${EXTRACT_BRANCH}..${EXTRACT_BRANCH} | sed -n 's/.*Merge pull request #\([0-9]*\).*/\1/p' | tac)
-if command -v gh &> /dev/null; then
-    GH_AVAILABLE=true
-else
-    GH_AVAILABLE=false
-    echo "Note: GitHub CLI ('gh') not found in PATH, PR titles will be omitted from ${NOTES_FILE}"
-fi
-for PR in $MERGED_PRS; do
-    echo "- ${CMSSW_REPO}/pull/${PR}"
-    if $GH_AVAILABLE; then
-        TITLE=$(gh pr view ${CMSSW_REPO}/pull/${PR} --json title --template "{{.title}}")
-        echo "- ${TITLE} (${CMSSW_REPO}/pull/${PR}) " >> ${NOTES_FILE}
-    else
-        echo "- ${CMSSW_REPO}/pull/${PR}" >> ${NOTES_FILE}
-    fi
-done
+# Current working directory is cmssw, but want the NOTES_FILE to be created in the directory where the script is run, so use ../${NOTES_FILE}
+"${SCRIPT_DIR}/list-merges.sh" ${STITCHED_ORIGIN}/${EXTRACT_BRANCH} ${EXTRACT_BRANCH} ../${NOTES_FILE}
 
 echo
 echo "Next you need to rebase the ${NEW_MAIN} branch, and push everything back to the Stitched repository"
