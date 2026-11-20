@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+# dirname can return a relative path, so we convert it to an absolute path to ensure the script works correctly
+# regardless of the current working directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 PATHS="DataFormats/Common
        DataFormats/Provenance
        DataFormats/StdDictionaries
@@ -44,6 +48,7 @@ done
 
 # "Configuration"
 EXTRACT_BRANCH="cmssw_master"
+CMSSW_REPO="https://github.com/cms-sw/cmssw"
 STITCHED_REPO="git@github.com:code4hep/stitched-alpha2.git"
 
 # In the original CMSSW
@@ -62,7 +67,7 @@ STITCHED_REPO="git@github.com:code4hep/stitched-alpha2.git"
 echo "$(date) Starting"
 echo
 echo "Cloning CMSSW"
-git clone https://github.com/cms-sw/cmssw.git
+git clone ${CMSSW_REPO}.git
 cd cmssw
 
 CMSSW_HEAD_ID=$(git rev-parse --short master)
@@ -97,10 +102,16 @@ git remote add ${STITCHED_ORIGIN} ${STITCHED_REPO}
 echo "git fetch ${STITCHED_ORIGIN}"
 git fetch ${STITCHED_ORIGIN}
 
-LATEST_MAIN=$(git remote show ${STITCHED_ORIGIN} | grep main_ | grep -v HEAD | awk '{print $1}' | sort -u)
+LATEST_MAIN=$(git remote show ${STITCHED_ORIGIN} | grep main_ | grep -v HEAD | awk '{print $1}' | sort -u | tail -n 1)
 NEW_MAIN="main_${DATE}"
 echo "git branch ${NEW_MAIN} ${STITCHED_ORIGIN}/${LATEST_MAIN}"
 git branch ${NEW_MAIN} ${STITCHED_ORIGIN}/${LATEST_MAIN}
+
+NOTES_FILE="ReleaseNotes.md"
+echo
+echo "Following PRs were merged in the CMSSW since the last extraction (from oldest to newest). Include these in the Stitched release notes (the list is saved in ${NOTES_FILE})."
+# Current working directory is cmssw, but want the NOTES_FILE to be created in the directory where the script is run, so use ../${NOTES_FILE}
+"${SCRIPT_DIR}/list-merges.sh" ${STITCHED_ORIGIN}/${EXTRACT_BRANCH} ${EXTRACT_BRANCH} ../${NOTES_FILE}
 
 echo
 echo "Next you need to rebase the ${NEW_MAIN} branch, and push everything back to the Stitched repository"
